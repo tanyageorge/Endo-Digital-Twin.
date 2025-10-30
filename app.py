@@ -83,9 +83,8 @@ def save_data(df):
 
 def digital_twin_tab():
     """Digital Twin Simulator - Main tab"""
-    st.markdown('<div class="main-header">🩸 Endo Digital Twin</div>', unsafe_allow_html=True)
     st.markdown("""
-    <div style="text-align: center; margin-bottom: 2rem; color: #64748b;">
+    <div style="text-align: center; margin-bottom: 2rem; color: #64748b; font-size: 1.1rem;">
         Explore how different lifestyle factors might affect pain levels
     </div>
     """, unsafe_allow_html=True)
@@ -315,15 +314,157 @@ def tracking_tab():
         display_df['date'] = display_df['date'].dt.strftime('%Y-%m-%d')
         st.dataframe(display_df.tail(10), use_container_width=True, hide_index=True)
 
+def introduction_tab():
+    """Introduction tab with app overview"""
+    st.markdown('<div class="main-header">🩸 Endo Digital Twin</div>', unsafe_allow_html=True)
+    
+    st.markdown("""
+    <div style="text-align: center; margin-bottom: 1rem; color: #64748b; font-size: 1.1rem;">
+        An educational tool for exploring endometriosis symptom patterns and lifestyle factors
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Display the image full width
+    st.image("women_endo.png", use_container_width=True)
+    
+    # Scroll indicator
+    st.markdown("""
+    <div style="text-align: center; margin-bottom: 2rem;">
+        <div style="color: #667eea; font-size: 2rem; animation: bounce 2s infinite;">⬇️</div>
+        <p style="color: #9ca3af; font-size: 0.9rem; margin-top: 0.5rem;">Scroll to learn more</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.markdown("""
+    <style>
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(10px); }
+        }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    # What is this app section
+    st.markdown("""
+    <div style="background: #f8fafc; padding: 2rem; border-radius: 1rem; margin-bottom: 2rem; border-left: 4px solid #6B46C1;">
+        <h2 style="color: #6B46C1; margin-top: 0;">📌 About This App</h2>
+        <p style="font-size: 1.1rem; line-height: 1.8; color: #2D3748;">
+            The <strong>Endo Digital Twin</strong> is an educational application designed to help individuals 
+            understand how different lifestyle factors might influence endometriosis symptoms. This tool combines 
+            machine learning predictions with intuitive visualization to explore "what-if" scenarios and track 
+            personal patterns over time.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Features section
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("""
+        <div style="background: #e0e7ff; padding: 1.5rem; border-radius: 1rem; margin-bottom: 1rem;">
+            <h3 style="color: #4f46e5; margin-top: 0;">🧪 Simulator</h3>
+            <p style="color: #1e1b4b;">
+                Explore how different lifestyle factors might affect pain levels. Adjust sleep, stress, 
+                activity, hydration, and menstrual cycle phase to see potential impacts on symptom severity.
+                Choose between ElasticNet (interpretable) or RandomForest (non-linear patterns) models.
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown("""
+        <div style="background: #dcfce7; padding: 1.5rem; border-radius: 1rem; margin-bottom: 1rem;">
+            <h3 style="color: #15803d; margin-top: 0;">📊 Tracking</h3>
+            <p style="color: #14532d;">
+                Log your daily symptoms, mood, sleep, and activities. Visualize patterns over time with 
+                interactive charts to identify trends and correlations in your data.
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    # Important Disclaimer
+    st.markdown("""
+    <div style="background: #fef2f2; padding: 2rem; border-radius: 1rem; margin-bottom: 2rem; border-left: 4px solid #ef4444;">
+        <h3 style="color: #dc2626; margin-top: 0;">⚠️ Important Disclaimer</h3>
+        <p style="font-size: 1rem; line-height: 1.8; color: #991b1b;">
+            This application is for <strong>educational purposes only</strong> and is not medical advice. 
+            The predictions are based on simplified models trained on synthetic data and may not reflect your 
+            individual experience. Always consult with healthcare professionals for medical decisions.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # How it works
+    st.markdown("""
+    <div style="background: #f0f9ff; padding: 2rem; border-radius: 1rem; margin-bottom: 2rem; border-left: 4px solid #0ea5e9;">
+        <h3 style="color: #0c4a6e; margin-top: 0;">🔬 How It Works</h3>
+        <p style="font-size: 1rem; line-height: 1.8; color: #0c4a6e; margin-bottom: 1rem;">
+            The app uses machine learning models (ElasticNet and RandomForest) trained on synthetic endometriosis 
+            data to predict pain levels based on various lifestyle factors. The models consider:
+        </p>
+        <ul style="color: #0c4a6e; line-height: 2; font-size: 1rem;">
+            <li>😴 Sleep patterns and duration</li>
+            <li>😰 Stress levels</li>
+            <li>🏃 Physical activity</li>
+            <li>💧 Hydration</li>
+            <li>🩸 Menstrual cycle phase</li>
+            <li>🤢 Gastrointestinal symptoms</li>
+            <li>💊 Medication use</li>
+            <li>😊 Mood and emotional state</li>
+        </ul>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # References
+    st.markdown("""
+    <div style="background: #faf5ff; padding: 2rem; border-radius: 1rem; margin-bottom: 2rem; border-left: 4px solid #8b5cf6;">
+        <h3 style="color: #5b21b6; margin-top: 0;">📚 References & Further Reading</h3>
+        <div style="color: #4c1d95; line-height: 2; font-size: 0.95rem;">
+            <p style="margin: 0.5rem 0;"><strong>Endometriosis Overview:</strong></p>
+            <ul style="margin: 0.5rem 0;">
+                <li>Bulun, S. E., et al. (2019). Endometriosis. <em>Endocrine Reviews</em>, 40(4), 1048-1079.</li>
+                <li>Zondervan, K. T., et al. (2020). Endometriosis. <em>Nature Reviews Disease Primers</em>, 6(1), 9.</li>
+            </ul>
+            
+            <p style="margin: 0.5rem 0;"><strong>Lifestyle Factors & Symptoms:</strong></p>
+            <ul style="margin: 0.5rem 0;">
+                <li>Nodler, J. L., et al. (2020). Lifestyle and behavioral modifications for endometriosis. <em>Current Opinion in Obstetrics and Gynecology</em>, 32(4), 227-233.</li>
+                <li>Agarwal, S. K., et al. (2019). Clinical diagnosis of endometriosis: a call to action. <em>American Journal of Obstetrics and Gynecology</em>, 220(4), 354.e1-354.e12.</li>
+            </ul>
+            
+            <p style="margin: 0.5rem 0;"><strong>Digital Health Applications:</strong></p>
+            <ul style="margin: 0.5rem 0;">
+                <li>Nnoaham, K. E., et al. (2011). Impact of endometriosis on quality of life. <em>Human Reproduction</em>, 26(10), 2748-2756.</li>
+                <li>World Endometriosis Society. (2021). World Endometriosis Society consensus on endometriosis.</li>
+            </ul>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Getting Started
+    st.markdown("""
+    <div style="background: #fff7ed; padding: 1.5rem; border-radius: 1rem; text-align: center;">
+        <h3 style="color: #c2410c; margin-top: 0;">🚀 Getting Started</h3>
+        <p style="color: #9a3412; font-size: 1.1rem;">
+            Navigate to the <strong>🧪 Simulator</strong> tab to explore predictions or the 
+            <strong>📊 Tracking</strong> tab to log your data and view patterns.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
 def main():
     """Main app function"""
     # Create tabs
-    tab1, tab2 = st.tabs(["🧪 Simulator", "📊 Tracking"])
+    tab1, tab2, tab3 = st.tabs(["🏠 Introduction", "🧪 Simulator", "📊 Tracking"])
     
     with tab1:
-        digital_twin_tab()
+        introduction_tab()
     
     with tab2:
+        digital_twin_tab()
+    
+    with tab3:
         tracking_tab()
 
 if __name__ == "__main__":
