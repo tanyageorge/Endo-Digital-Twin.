@@ -41,7 +41,11 @@ class EndoVisualizer:
         fig.update_layout(
             height=400,
             plot_bgcolor='white',
-            paper_bgcolor='white'
+            paper_bgcolor='white',
+            title_font=dict(color='#2D3748', size=16),
+            font=dict(color='#2D3748', size=12),
+            xaxis=dict(title_font=dict(color='#2D3748', size=12)),
+            yaxis=dict(title_font=dict(color='#2D3748', size=12))
         )
         
         return fig
@@ -68,7 +72,11 @@ class EndoVisualizer:
         fig.update_layout(
             height=400,
             plot_bgcolor='white',
-            paper_bgcolor='white'
+            paper_bgcolor='white',
+            title_font=dict(color='#2D3748', size=16),
+            font=dict(color='#2D3748', size=12),
+            xaxis=dict(title_font=dict(color='#2D3748', size=12)),
+            yaxis=dict(title_font=dict(color='#2D3748', size=12))
         )
         
         return fig
@@ -92,7 +100,8 @@ class EndoVisualizer:
             y=[baseline],
             marker_color=self.color_primary,
             text=[f'{baseline:.1f}'],
-            textposition='auto'
+            textposition='auto',
+            textfont=dict(color='white', size=14)
         ))
         
         fig.add_trace(go.Bar(
@@ -101,18 +110,23 @@ class EndoVisualizer:
             y=[simulated],
             marker_color=self.color_secondary,
             text=[f'{simulated:.1f}'],
-            textposition='auto'
+            textposition='auto',
+            textfont=dict(color='white', size=14)
         ))
         
         fig.update_layout(
             title="Pain Level Comparison",
             xaxis_title="Scenario",
             yaxis_title="Pain Level (0-10)",
-            yaxis=dict(range=[0, 10]),
+            yaxis=dict(range=[0, 10], title_font=dict(color='#2D3748', size=12)),
             height=400,
             showlegend=True,
             plot_bgcolor='white',
-            paper_bgcolor='white'
+            paper_bgcolor='white',
+            title_font=dict(color='#2D3748', size=16),
+            font=dict(color='#2D3748', size=12),
+            xaxis=dict(title_font=dict(color='#2D3748', size=12)),
+            legend=dict(font=dict(color='#2D3748', size=12))
         )
         
         return fig
@@ -141,7 +155,9 @@ class EndoVisualizer:
         fig.update_layout(
             height=500,
             plot_bgcolor='white',
-            paper_bgcolor='white'
+            paper_bgcolor='white',
+            title_font=dict(color='#2D3748', size=16),
+            font=dict(color='#2D3748', size=12)
         )
         
         return fig
@@ -188,7 +204,11 @@ class EndoVisualizer:
         fig.update_layout(
             height=400,
             plot_bgcolor='white',
-            paper_bgcolor='white'
+            paper_bgcolor='white',
+            title_font=dict(color='#2D3748', size=16),
+            font=dict(color='#2D3748', size=12),
+            xaxis=dict(title_font=dict(color='#2D3748', size=12)),
+            yaxis=dict(title_font=dict(color='#2D3748', size=12))
         )
         
         return fig
