@@ -102,38 +102,54 @@ def digital_twin_tab():
         """)
         return
     
-    col1, col2 = st.columns([1, 1])
-    
-    with col1:
-        # Model Selection
-        model_choice = st.selectbox("**Model**", available_models, 
-                                  help="ElasticNet provides interpretable predictions. RandomForest captures non-linear patterns.")
+    # Use form for better UX
+    with st.form("simulation_form", border=False):
+        col1, col2 = st.columns([1, 1])
         
-        st.markdown('<div class="section-header">Adjust Factors</div>', unsafe_allow_html=True)
+        with col1:
+            # Model Selection
+            model_choice = st.selectbox("**Model Type**", available_models, 
+                                      help="ElasticNet provides interpretable predictions. RandomForest captures non-linear patterns.")
+        
+        with col2:
+            st.markdown("<br>", unsafe_allow_html=True)  # Spacer for alignment
+        
+        st.markdown('<div class="section-header">🏥 Input Your Information</div>', unsafe_allow_html=True)
         
         # Group parameters more logically
-        sleep_sim = st.slider("😴 Sleep Hours", 3.0, 11.0, 8.0, 0.5)
-        activity_sim = st.slider("🏃 Activity Level", 0, 10, 5)
-        hydration_sim = st.slider("💧 Hydration Level", 0, 12, 8)
+        col1, col2, col3 = st.columns(3)
         
-        stress_sim = st.slider("😰 Stress Level", 0, 10, 5)
-        mood_sim = st.slider("😊 Mood Level", 0, 10, 7)
+        with col1:
+            st.markdown("**Physical Health**")
+            sleep_sim = st.slider("😴 Sleep Hours", 3.0, 11.0, 8.0, 0.5)
+            activity_sim = st.slider("🏃 Activity Level", 0, 10, 5)
+            hydration_sim = st.slider("💧 Hydration Level", 0, 12, 8)
         
-        period_sim = st.selectbox("📅 Menstrual Phase", 
-                                [-2, -1, 0, 1, 2],
-                                format_func=lambda x: {
-                                    -2: "Ovulation (-2)",
-                                    -1: "Pre-menstrual (-1)",
-                                    0: "Menstrual (0)",
-                                    1: "Post-menstrual (+1)",
-                                    2: "Follicular (+2)"
-                                }[x],
-                                index=2)
+        with col2:
+            st.markdown("**Mental & Emotional**")
+            stress_sim = st.slider("😰 Stress Level", 0, 10, 5)
+            mood_sim = st.slider("😊 Mood Level", 0, 10, 7)
         
-        gi_sim = st.checkbox("🤢 GI Symptoms")
-        meds_sim = st.checkbox("💊 Taking NSAID")
+        with col3:
+            st.markdown("**Symptoms & Cycle**")
+            period_sim = st.selectbox("📅 Menstrual Phase", 
+                                    [-2, -1, 0, 1, 2],
+                                    format_func=lambda x: {
+                                        -2: "Ovulation (-2)",
+                                        -1: "Pre-menstrual (-1)",
+                                        0: "Menstrual (0)",
+                                        1: "Post-menstrual (+1)",
+                                        2: "Follicular (+2)"
+                                    }[x],
+                                    index=2)
+            gi_sim = st.checkbox("🤢 GI Symptoms")
+            meds_sim = st.checkbox("💊 Taking NSAID")
+        
+        # Submit button
+        submitted = st.form_submit_button("🔮 Generate Prediction", use_container_width=True, type="primary")
     
-    with col2:
+    # Show results only after form submission
+    if submitted:
         try:
             # Load selected model
             predictor = load_predictor(model_choice)
@@ -170,50 +186,180 @@ def digital_twin_tab():
             
             pi_halfwidth = meta.get('pi_halfwidth', 0.7)
             
-            # Display predictions
-            st.markdown(f"""
-            <div class="prediction-card">
-                <h3>Baseline Pain</h3>
-                <div class="metric">{baseline_pain:.1f}/10</div>
-                <p style="margin: 0; opacity: 0.9;">Typical scenario</p>
-            </div>
-            """, unsafe_allow_html=True)
+            # Calculate individual feature effects using coefficients
+            coefficients = meta.get('coefficients', {})
+            feature_impacts = {}
             
-            # Color-coded change
-            change_color = "#22c55e" if pain_change < -0.1 else "#ef4444" if pain_change > 0.5 else "#f59e0b"
+            # Focus on the 5 key features requested
+            key_features = ['sleep', 'activity', 'hydration', 'mood', 'stress']
             
-            st.markdown(f"""
-            <div class="prediction-card" style="background: linear-gradient(135deg, {change_color} 0%, #764ba2 100%);">
-                <h3>Simulated Pain</h3>
-                <div class="metric">{simulated_pain:.1f}/10</div>
-                <p style="margin: 0; opacity: 0.9;">Change: {pain_change:+.2f} points</p>
-                <p style="margin: 0; opacity: 0.8; font-size: 0.9rem;">Uncertainty: ±{pi_halfwidth:.2f}</p>
-            </div>
-            """, unsafe_allow_html=True)
+            if coefficients:
+                # ElasticNet: use coefficients directly
+                for feature in key_features:
+                    if feature in coefficients and feature in baseline_features and feature in simulated_features:
+                        delta = simulated_features[feature] - baseline_features[feature]
+                        impact = delta * coefficients[feature]
+                        feature_impacts[feature] = impact
+            else:
+                # RandomForest: estimate using feature importances and deltas
+                feature_importances = meta.get('feature_importances', {})
+                if feature_importances:
+                    # Normalize importances to get relative weights
+                    total_importance = sum(abs(v) for v in feature_importances.values()) if feature_importances else 1
+                    for feature in key_features:
+                        if feature in feature_importances and feature in baseline_features and feature in simulated_features:
+                            delta = simulated_features[feature] - baseline_features[feature]
+                            # Estimate impact: delta * (importance / total) * pain_change
+                            relative_importance = abs(feature_importances[feature]) / total_importance if total_importance > 0 else 0
+                            impact = delta * relative_importance * (pain_change / max(abs(pain_change), 0.1))
+                            feature_impacts[feature] = impact
             
-            # AI Explanation
-            if model_choice == "ElasticNet" and 'coefficients' in meta:
-                try:
-                    explanation = explain_prediction_change(
-                        baseline_features, simulated_features, 
-                        meta['coefficients'], pain_change
-                    )
+            # Calculate individual effects for KPIs
+            sleep_effect = feature_impacts.get('sleep', 0)
+            stress_effect = feature_impacts.get('stress', 0)
+            activity_effect = feature_impacts.get('activity', 0)
+            hydration_effect = feature_impacts.get('hydration', 0)
+            
+            # Results Summary Dashboard
+            st.markdown('<div class="section-header">📊 Results Summary</div>', unsafe_allow_html=True)
+            
+            # 1. KPI Metrics Row
+            col1, col2, col3, col4, col5 = st.columns(5)
+            
+            with col1:
+                st.metric("Predicted Pain", f"{simulated_pain:.1f}/10", 
+                         delta=f"{pain_change:+.2f}", delta_color="inverse")
+            
+            with col2:
+                st.metric("Sleep Effect", f"{sleep_effect:+.2f}", 
+                         delta="Better" if sleep_effect < 0 else "Worse" if sleep_effect > 0 else "Neutral",
+                         delta_color="inverse" if sleep_effect < 0 else "normal")
+            
+            with col3:
+                st.metric("Stress Effect", f"{stress_effect:+.2f}", 
+                         delta="Better" if stress_effect < 0 else "Worse" if stress_effect > 0 else "Neutral",
+                         delta_color="inverse" if stress_effect < 0 else "normal")
+            
+            with col4:
+                st.metric("Net Change", f"{pain_change:+.2f}", 
+                         delta="vs Baseline", delta_color="inverse" if pain_change < 0 else "normal")
+            
+            with col5:
+                st.metric("Activity Effect", f"{activity_effect:+.2f}",
+                         delta="Better" if activity_effect < 0 else "Worse" if activity_effect > 0 else "Neutral",
+                         delta_color="inverse" if activity_effect < 0 else "normal")
+            
+            st.divider()
+            
+            # 2 & 3. Feature Impact Bar Chart and Pain Profile Radar Chart side by side
+            visualizer = EndoVisualizer()
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                if feature_impacts:
+                    fig_impact = visualizer.create_feature_impact_chart(feature_impacts)
+                    st.plotly_chart(fig_impact, use_container_width=True)
+            
+            with col2:
+                user_profile = {
+                    'Sleep': sleep_sim,
+                    'Activity': activity_sim,
+                    'Hydration': hydration_sim,
+                    'Mood': mood_sim,
+                    'Low Stress': 10 - stress_sim  # Invert stress so higher = better
+                }
+                
+                ideal_profile = {
+                    'Sleep': 8.0,
+                    'Activity': 8.0,
+                    'Hydration': 10.0,
+                    'Mood': 8.0,
+                    'Low Stress': 8.0  # Low stress = 8 means stress = 2
+                }
+                
+                fig_radar = visualizer.create_pain_profile_radar(user_profile, ideal_profile)
+                st.plotly_chart(fig_radar, use_container_width=True)
+            
+            st.divider()
+            
+            # 4. What-If Explanation Sentence
+            if coefficients or feature_impacts:
+                # Generate plain English explanation
+                explanations = []
+                if abs(sleep_effect) > 0.1:
+                    direction = "improved" if sleep_effect < 0 else "worsened"
+                    explanations.append(f"{'Better' if sleep_effect < 0 else 'Reduced'} sleep {direction} pain by {abs(sleep_effect):.2f} points")
+                
+                if abs(hydration_effect) > 0.1:
+                    direction = "improved" if hydration_effect < 0 else "worsened"
+                    explanations.append(f"{'Better' if hydration_effect < 0 else 'Lower'} hydration {direction} pain by {abs(hydration_effect):.2f} points")
+                
+                if abs(stress_effect) > 0.1:
+                    direction = "increased" if stress_effect > 0 else "decreased"
+                    explanations.append(f"{'Higher' if stress_effect > 0 else 'Lower'} stress {direction} pain by {abs(stress_effect):.2f} points")
+                
+                if abs(activity_effect) > 0.1:
+                    direction = "improved" if activity_effect < 0 else "worsened"
+                    explanations.append(f"{'Better' if activity_effect < 0 else 'Lower'} activity {direction} pain by {abs(activity_effect):.2f} points")
+                
+                if explanations:
+                    explanation_text = ". ".join(explanations) + f" — net change: {pain_change:+.2f} points."
+                else:
+                    explanation_text = f"Overall, your lifestyle factors result in a {pain_change:+.2f} point change in predicted pain."
+                
+                st.markdown(f"""
+                <div class="explanation-box">
+                    <p style="margin: 0; font-size: 1.1rem; color: #1a202c;"><strong style="color: #1a202c;">💡 What-If Summary:</strong> <span style="color: #1a202c;">{explanation_text}</span></p>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            st.divider()
+            
+            # 5. Well-being Balance Gauge
+            # Calculate overall balance score (0-100)
+            # Weighted mix: sleep (20%), activity (15%), hydration (15%), mood (20%), low stress (30%)
+            balance_score = (
+                (sleep_sim / 11.0) * 20 +  # Sleep normalized to 0-11
+                (activity_sim / 10.0) * 15 +
+                (hydration_sim / 12.0) * 15 +
+                (mood_sim / 10.0) * 20 +
+                ((10 - stress_sim) / 10.0) * 30  # Low stress (inverted)
+            )
+            balance_score = max(0, min(100, balance_score))  # Clamp to 0-100
+            
+            fig_gauge = visualizer.create_wellbeing_gauge(balance_score)
+            st.plotly_chart(fig_gauge, use_container_width=True)
+            
+            # Optional: 7-day trendline if data exists
+            df = load_data()
+            if not df.empty and len(df) >= 2:
+                df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%d', errors='coerce')
+                df = df.sort_values('date')
+                recent = df.tail(7)
+                
+                if len(recent) > 1:
+                    avg_pain_recent = recent['pain_level'].mean()
+                    avg_pain_prev = df.tail(14).head(7)['pain_level'].mean() if len(df) >= 7 else avg_pain_recent
+                    pain_trend = avg_pain_recent - avg_pain_prev
+                    
+                    avg_sleep_recent = recent['sleep_hours'].mean()
+                    avg_sleep_prev = df.tail(14).head(7)['sleep_hours'].mean() if len(df) >= 7 else avg_sleep_recent
+                    sleep_trend = avg_sleep_recent - avg_sleep_prev
+                    
+                    st.divider()
                     st.markdown(f"""
-                    <div class="explanation-box">
-                        <p style="margin: 0;"><strong>💡 Explanation:</strong> {explanation}</p>
+                    <div style="background: #f0f9ff; padding: 1rem; border-radius: 0.5rem; border-left: 4px solid #0ea5e9;">
+                        <p style="margin: 0; color: #0c4a6e;"><strong>📈 Past Week Trend:</strong> 
+                        Pain {'↓' if pain_trend < 0 else '↑'} {abs(pain_trend):.1f} while sleep {'↑' if sleep_trend > 0 else '↓'} {abs(sleep_trend):.1f} hrs</p>
                     </div>
                     """, unsafe_allow_html=True)
-                except Exception as e:
-                    pass
-            
-            # Visualization
-            visualizer = EndoVisualizer()
-            fig = visualizer.create_comparison_chart(baseline_pain, simulated_pain)
-            st.plotly_chart(fig, use_container_width=True)
             
         except Exception as e:
             st.error(f"❌ Error: {str(e)}")
             return
+    else:
+        # Show placeholder before submission
+        st.info("👆 Please fill in your information above and click 'Generate Prediction' to see results.")
 
 def tracking_tab():
     """Data tracking and visualization"""
@@ -225,7 +371,8 @@ def tracking_tab():
         st.info("No tracking data yet. Use the simulator to explore predictions.")
         return
     
-    df['date'] = pd.to_datetime(df['date'])
+    df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%d', errors='coerce')
+    df = df.dropna(subset=['date'])  # Remove rows with invalid dates
     df = df.sort_values('date')
     
     # Key metrics
