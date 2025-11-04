@@ -1,6 +1,10 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
+import plotly.graph_objects as go
+import joblib
 from datetime import datetime
+from typing import Dict, List, Tuple, Any, Optional
 import os
 import sys
 
@@ -80,6 +84,220 @@ def load_data():
 def save_data(df):
     """Save check-in data to CSV file"""
     df.to_csv(DATA_FILE, index=False)
+
+def predict_grid(predict_fn, base_dict: Dict[str, float], x_name: str, y_name: str, 
+                 xs: np.ndarray, ys: np.ndarray) -> np.ndarray:
+    """
+    Build a 2D grid of predictions by varying X and Y features.
+    
+    Args:
+        predict_fn: Function that takes a feature dict and returns a float
+        base_dict: Base feature dictionary (other features held constant)
+        x_name: Name of feature for X axis
+        y_name: Name of feature for Y axis
+        xs: Array of X values
+        ys: Array of Y values
+    
+    Returns:
+        2D numpy array of predictions (shape: len(ys), len(xs))
+    """
+    grid = np.zeros((len(ys), len(xs)))
+    for i, y_val in enumerate(ys):
+        for j, x_val in enumerate(xs):
+            feats = base_dict.copy()
+            feats[x_name] = x_val
+            feats[y_name] = y_val
+            grid[i, j] = predict_fn(feats)
+    return grid
+
+def top_contributors(baseline: Dict[str, float], scenario: Dict[str, float], 
+                    coefficients: Optional[Dict[str, float]]) -> List[Tuple[str, float]]:
+    """
+    Calculate top contributors to pain change.
+    
+    Args:
+        baseline: Baseline feature values
+        scenario: Scenario feature values
+        coefficients: Model coefficients (None if unavailable)
+    
+    Returns:
+        List of (feature_name, impact) tuples sorted by absolute impact
+    """
+    contributions = {}
+    key_features = ["sleep", "activity", "hydration", "mood", "stress"]
+    
+    for feat in key_features:
+        if feat in baseline and feat in scenario:
+            delta = scenario[feat] - baseline[feat]
+            if coefficients and feat in coefficients:
+                impact = delta * coefficients[feat]
+            else:
+                impact = 0.0  # No coefficient available
+            contributions[feat] = impact
+    
+    # Sort by absolute impact, descending
+    sorted_contribs = sorted(contributions.items(), key=lambda x: abs(x[1]), reverse=True)
+    return sorted_contribs
+
+def create_scenario_heatmap(predictor, base_dict: Dict[str, float], 
+                            x_name: str, y_name: str, x_val: float, y_val: float,
+                            baseline_x: float, baseline_y: float) -> go.Figure:
+    """
+    Create an interactive scenario heatmap.
+    
+    Args:
+        predictor: Predictor object with predict() method
+        base_dict: Base feature dictionary
+        x_name: X axis feature name
+        y_name: Y axis feature name
+        x_val: Current scenario X value
+        y_val: Current scenario Y value
+        baseline_x: Baseline X value
+        baseline_y: Baseline Y value
+    
+    Returns:
+        Plotly figure
+    """
+    # Define ranges for each feature
+    ranges = {
+        'sleep': (3.0, 11.0, 25),
+        'stress': (0.0, 10.0, 25),
+        'activity': (0.0, 10.0, 25),
+        'hydration': (0.0, 12.0, 25),
+        'mood': (0.0, 10.0, 25)
+    }
+    
+    x_min, x_max, x_steps = ranges[x_name]
+    y_min, y_max, y_steps = ranges[y_name]
+    
+    xs = np.linspace(x_min, x_max, x_steps)
+    ys = np.linspace(y_min, y_max, y_steps)
+    
+    # Build prediction grid
+    grid = predict_grid(predictor.predict, base_dict, x_name, y_name, xs, ys)
+    
+    # Human-friendly labels
+    labels = {
+        'sleep': 'Sleep (hours)',
+        'stress': 'Stress Level',
+        'activity': 'Activity Level',
+        'hydration': 'Hydration Level',
+        'mood': 'Mood Level'
+    }
+    
+    # Create heatmap with high-contrast colorscale (blue to red)
+    # High-contrast custom colorscale: dark blue -> medium blue -> medium red -> dark red
+    custom_colorscale = [
+        [0.0, 'rgb(0, 0, 255)'],      # Bright blue (low pain)
+        [0.33, 'rgb(100, 149, 237)'], # Cornflower blue
+        [0.67, 'rgb(255, 69, 0)'],    # Red-orange
+        [1.0, 'rgb(255, 0, 0)']       # Bright red (high pain)
+    ]
+    
+    fig = go.Figure(data=go.Heatmap(
+        z=grid,
+        x=xs,
+        y=ys,
+        colorscale=custom_colorscale,
+        zmin=0,
+        zmax=10,
+        colorbar=dict(title=dict(text="Predicted Pain", font=dict(color='#2D3748', size=12)))
+    ))
+    
+    # Add scenario marker (X)
+    fig.add_trace(go.Scatter(
+        x=[x_val],
+        y=[y_val],
+        mode='markers+text',
+        marker=dict(symbol='x', size=15, color='white', line=dict(width=2, color='black')),
+        text=['You'],
+        textposition='top center',
+        name='Your Scenario',
+        showlegend=False
+    ))
+    
+    # Add baseline marker (dot)
+    fig.add_trace(go.Scatter(
+        x=[baseline_x],
+        y=[baseline_y],
+        mode='markers+text',
+        marker=dict(symbol='circle', size=12, color='white', line=dict(width=2, color='black')),
+        text=['Baseline'],
+        textposition='top center',
+        name='Baseline',
+        showlegend=False
+    ))
+    
+    fig.update_layout(
+        title="Interactive Scenario Heatmap",
+        xaxis_title=labels[x_name],
+        yaxis_title=labels[y_name],
+        template='plotly_white',
+        height=420,
+        title_font=dict(color='#2D3748', size=16),
+        font=dict(color='#2D3748', size=12),
+        xaxis=dict(title_font=dict(color='#2D3748', size=12)),
+        yaxis=dict(title_font=dict(color='#2D3748', size=12))
+    )
+    
+    return fig
+
+def generate_doctor_summary(simulated_pain: float, baseline_pain: float, 
+                           pain_change: float, pi_halfwidth: float,
+                           baseline: Dict[str, float], scenario: Dict[str, float],
+                           coefficients: Optional[Dict[str, float]]) -> Tuple[str, List[str]]:
+    """
+    Generate doctor-style summary and educational suggestions.
+    
+    Returns:
+        Tuple of (summary_sentence, list_of_suggestions)
+    """
+    # Get top contributors
+    contributors = top_contributors(baseline, scenario, coefficients)
+    top_2_3 = contributors[:3]
+    
+    # Format contributors
+    contrib_texts = []
+    for name, impact in top_2_3:
+        if abs(impact) > 0.01:  # Only show meaningful contributions
+            name_display = name.capitalize()
+            sign = '-' if impact < 0 else '+'
+            contrib_texts.append(f"{name_display} ({sign}{abs(impact):.2f})")
+    
+    if contrib_texts:
+        contrib_str = ", ".join(contrib_texts)
+    else:
+        contrib_str = "modest contributions from multiple factors"
+    
+    # Summary sentence
+    summary = (
+        f"Summary: Predicted pain is {simulated_pain:.1f}/10 "
+        f"(change vs baseline: {pain_change:+.2f}, uncertainty ±{pi_halfwidth:.2f}). "
+        f"Biggest modeled contributors: {contrib_str}."
+    )
+    
+    # Educational suggestions based on thresholds
+    suggestions = []
+    
+    if scenario.get('sleep', 8.0) < 7:
+        suggestions.append("Aim for ~7–9 hours of sleep per night for better symptom management.")
+    
+    if scenario.get('stress', 5.0) >= 6:
+        suggestions.append("Brief daily stress-reduction practices (e.g., 5–10 min breathing exercises or gentle movement) may help.")
+    
+    if scenario.get('hydration', 8.0) < 6:
+        suggestions.append("Increase fluids gradually throughout the day (water, herbal teas) to support overall wellness.")
+    
+    if scenario.get('activity', 5.0) < 4:
+        suggestions.append("Light, regular movement (walking, stretching) can help maintain flexibility and may ease discomfort.")
+    
+    if scenario.get('mood', 7.0) <= 4:
+        suggestions.append("Consider brief mood-supporting activities (time outdoors, favorite music, connecting with others).")
+    
+    if not suggestions:
+        suggestions.append("Inputs are near helpful ranges—keep routines steady and track patterns over time.")
+    
+    return summary, suggestions
 
 def digital_twin_tab():
     """Digital Twin Simulator - Main tab"""
@@ -329,6 +547,100 @@ def digital_twin_tab():
             
             fig_gauge = visualizer.create_wellbeing_gauge(balance_score)
             st.plotly_chart(fig_gauge, use_container_width=True)
+            
+            st.divider()
+            
+            # Part A: Interactive Scenario Heatmap
+            st.markdown('<div class="section-header">🗺️ Interactive Scenario Heatmap</div>', unsafe_allow_html=True)
+            
+            # Feature selection dropdowns
+            available_features = {
+                'sleep': 'Sleep',
+                'stress': 'Stress',
+                'activity': 'Activity',
+                'hydration': 'Hydration',
+                'mood': 'Mood'
+            }
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                x_feature = st.selectbox(
+                    "X Axis Feature",
+                    options=list(available_features.keys()),
+                    format_func=lambda x: available_features[x],
+                    key="heatmap_x"
+                )
+            with col2:
+                # Y axis options exclude the X axis selection
+                y_options = [k for k in available_features.keys() if k != x_feature]
+                # Default to first available option (index 0)
+                y_feature = st.selectbox(
+                    "Y Axis Feature",
+                    options=y_options,
+                    format_func=lambda x: available_features[x],
+                    index=0,
+                    key="heatmap_y"
+                )
+            
+            # Create base dict for heatmap (hold other features constant at scenario values)
+            # We'll vary x_feature and y_feature, so they don't need to be in base_dict
+            # but predict_grid will copy and set them anyway, so including them is fine
+            heatmap_base = simulated_features.copy()
+            
+            # Get current scenario and baseline values for X and Y
+            scenario_x = float(simulated_features.get(x_feature, 0))
+            scenario_y = float(simulated_features.get(y_feature, 0))
+            baseline_x = float(baseline_features.get(x_feature, 0))
+            baseline_y = float(baseline_features.get(y_feature, 0))
+            
+            # Create heatmap
+            fig_heatmap = create_scenario_heatmap(
+                predictor, heatmap_base, x_feature, y_feature,
+                scenario_x, scenario_y, baseline_x, baseline_y
+            )
+            st.plotly_chart(fig_heatmap, use_container_width=True)
+            
+            st.caption("💡 Tip: Switch axes to explore other pairs. Darker = higher predicted pain.")
+            
+            st.divider()
+            
+            # Part B: Doctor-Style Summary Block
+            st.markdown('<div class="section-header" style="color: #1a202c;">👩‍⚕️ Doctor-Style Summary (Educational)</div>', unsafe_allow_html=True)
+            
+            # Try to load coefficients and pi_halfwidth from ElasticNet model
+            try:
+                en_path = "models/model_en.pkl"
+                if os.path.exists(en_path):
+                    en_obj = joblib.load(en_path)
+                    en_meta = en_obj.get("meta", {})
+                    en_coefficients = en_meta.get("coefficients", coefficients)
+                    en_pi_hw = en_meta.get("pi_halfwidth", pi_halfwidth)
+                else:
+                    en_coefficients = coefficients
+                    en_pi_hw = pi_halfwidth
+            except Exception:
+                en_coefficients = coefficients
+                en_pi_hw = pi_halfwidth
+            
+            # Generate summary
+            summary_text, suggestions = generate_doctor_summary(
+                simulated_pain, baseline_pain, pain_change, en_pi_hw,
+                baseline_features, simulated_features, en_coefficients
+            )
+            
+            # Display summary sentence
+            st.markdown(f"""
+            <div style="background: #f8fafc; padding: 1rem; border-radius: 0.5rem; border-left: 4px solid #6B46C1; margin-bottom: 1rem;">
+                <p style="margin: 0; color: #1a202c; font-size: 1rem;"><strong>{summary_text}</strong></p>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            # Display educational suggestions
+            if suggestions:
+                st.info("**Educational suggestions (not medical advice):**\n\n" + "\n\n".join([f"• {s}" for s in suggestions]))
+            
+            # Sources caption
+            st.caption("📚 **Sources:** General guidance informed by evidence-based resources from NIH, Mayo Clinic, ACOG, NICE, and WHO. This information is for educational purposes only and does not constitute medical advice. Always consult with a healthcare provider for personalized medical guidance.")
             
             # Optional: 7-day trendline if data exists
             df = load_data()
