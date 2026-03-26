@@ -1,0 +1,32 @@
+[Unit]
+Description=Endo Digital Twin — Streamlit ML App
+After=network.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/home/ubuntu/Endo-Digital-Twin
+ExecStart=/home/ubuntu/Endo-Digital-Twin/venv/bin/streamlit run app.py \
+    --server.port=8501 \
+    --server.address=127.0.0.1 \
+    --server.headless=true \
+    --server.enableCORS=false \
+    --server.enableXsrfProtection=true
+
+# Set your Anthropic API key here (or override via: sudo systemctl edit endo-digital-twin)
+# Environment="ANTHROPIC_API_KEY=sk-ant-..."
+
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=endo-digital-twin
+
+# Resource limits
+TimeoutStartSec=120
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target
