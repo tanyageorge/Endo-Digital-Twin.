@@ -807,7 +807,10 @@ def chart_sleep_vs_pain(df: pd.DataFrame) -> go.Figure:
         )
     )
     # Trend line
-    if len(df) >= 3:
+    if len(df) >= 5 and df["sleep_hours"].nunique() >= 3:
+        import warnings
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", np.RankWarning)
         z = np.polyfit(df["sleep_hours"].fillna(8), df["pain_level"].fillna(5), 1)
         p = np.poly1d(z)
         xs = np.linspace(df["sleep_hours"].min(), df["sleep_hours"].max(), 50)
@@ -1634,7 +1637,7 @@ def tab_tracker() -> None:
         show_cols = [c for c in show_cols if c in df.columns]
         disp = df[show_cols].copy()
         disp["date"] = disp["date"].dt.strftime("%Y-%m-%d")
-        st.dataframe(disp.tail(12).sort_values("date", ascending=False), use_container_width=True, hide_index=True)
+        st.dataframe(disp.tail(12).sort_values("date", ascending=False), width="stretch", hide_index=True)
     else:
         st.markdown(
             '<div class="insight-box" style="text-align:center; padding:2rem;">No tracking data yet. Log your first entry below.</div>',
@@ -1661,7 +1664,7 @@ def tab_tracker() -> None:
             nsaid_taken = st.checkbox("Took NSAID")
             other_meds = st.text_input("Other notes (optional)", placeholder="e.g. heat pad, rest day")
 
-        save_btn = st.form_submit_button("💾  Save Entry", use_container_width=True)
+        save_btn = st.form_submit_button("💾  Save Entry")
         if save_btn:
             new_entry = {
                 "date": datetime.now().strftime("%Y-%m-%d"),
