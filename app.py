@@ -27,43 +27,65 @@ st.set_page_config(
 # ─────────────────────────────────────────────
 st.markdown(
     """
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
 
-html, body, [class*="css"] {
-    font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif !important;
-}
+/* ══════════════════════════════════════════
+   STREAMLIT 1.50 — RELIABLE SELECTORS
+   ══════════════════════════════════════════ */
 
-/* Background gradient */
-.stApp {
-    background: linear-gradient(135deg, #06060f 0%, #110624 50%, #060b18 100%) !important;
-}
-.main .block-container {
-    padding: 1.5rem 2.5rem 3rem;
-    max-width: 1380px;
+/* Font injection — everything */
+*, *::before, *::after {
+    font-family: 'Inter', 'Space Grotesk', -apple-system, sans-serif !important;
 }
 
-/* ── Tabs ── */
-.stTabs [data-baseweb="tab-list"] {
-    background: rgba(255,255,255,0.03);
-    border-radius: 12px;
-    padding: 4px;
-    gap: 4px;
-    border: 1px solid rgba(255,255,255,0.07);
-    margin-bottom: 1.5rem;
+/* App background */
+[data-testid="stApp"] {
+    background: linear-gradient(160deg, #07071a 0%, #0e0525 45%, #07101f 100%) !important;
 }
-.stTabs [data-baseweb="tab"] {
-    border-radius: 8px;
-    color: rgba(255,255,255,0.55);
-    font-weight: 500;
-    font-size: 0.88rem;
-    padding: 0.45rem 1.1rem;
-    transition: all 0.25s;
+
+/* Main content area */
+section[data-testid="stMain"] {
+    background: transparent !important;
 }
-.stTabs [aria-selected="true"] {
+
+/* Block container padding */
+[data-testid="block-container"] {
+    padding: 1.5rem 2.5rem 3rem !important;
+    max-width: 1380px !important;
+}
+
+/* Hide Streamlit chrome */
+[data-testid="stHeader"]       { display: none !important; }
+[data-testid="stToolbar"]      { display: none !important; }
+#MainMenu, footer, header      { display: none !important; }
+
+/* ══════════════════════════════════════════
+   TABS
+   ══════════════════════════════════════════ */
+[data-baseweb="tab-list"] {
+    background: rgba(255,255,255,0.04) !important;
+    border-radius: 14px !important;
+    padding: 5px !important;
+    gap: 4px !important;
+    border: 1px solid rgba(255,255,255,0.08) !important;
+    margin-bottom: 1.5rem !important;
+}
+[data-baseweb="tab"] {
+    border-radius: 10px !important;
+    color: rgba(255,255,255,0.5) !important;
+    font-weight: 500 !important;
+    font-size: 0.88rem !important;
+    padding: 0.45rem 1.15rem !important;
+    transition: all 0.2s !important;
+    background: transparent !important;
+}
+[aria-selected="true"][data-baseweb="tab"] {
     background: linear-gradient(135deg, #7c3aed 0%, #1d4ed8 100%) !important;
     color: white !important;
-    font-weight: 600 !important;
+    font-weight: 700 !important;
+    box-shadow: 0 2px 12px rgba(124,58,237,0.45) !important;
 }
 
 /* ── Hero ── */
@@ -234,73 +256,142 @@ html, body, [class*="css"] {
     margin: 0.75rem 0;
 }
 
-/* ── Buttons ── */
-.stButton > button,
-[data-testid="stFormSubmitButton"] > button {
+/* ══════════════════════════════════════════
+   BUTTONS
+   ══════════════════════════════════════════ */
+.stButton button,
+[data-testid="stFormSubmitButton"] button,
+[data-testid="baseButton-secondary"],
+[data-testid="baseButton-primary"] {
     background: linear-gradient(135deg, #7c3aed 0%, #1d4ed8 100%) !important;
     color: white !important;
     border: none !important;
     border-radius: 10px !important;
     font-weight: 600 !important;
     font-size: 0.93rem !important;
-    padding: 0.6rem 1.5rem !important;
-    transition: all 0.2s !important;
-    box-shadow: 0 4px 18px rgba(124,58,237,0.3) !important;
+    padding: 0.55rem 1.4rem !important;
+    transition: all 0.2s ease !important;
+    box-shadow: 0 4px 16px rgba(124,58,237,0.35) !important;
     letter-spacing: 0.02em !important;
 }
-.stButton > button:hover,
-[data-testid="stFormSubmitButton"] > button:hover {
-    box-shadow: 0 6px 28px rgba(124,58,237,0.55) !important;
+.stButton button:hover,
+[data-testid="stFormSubmitButton"] button:hover {
+    box-shadow: 0 6px 28px rgba(124,58,237,0.6) !important;
     transform: translateY(-1px) !important;
+    filter: brightness(1.08) !important;
 }
 
-/* ── Text inputs / textareas ── */
-.stTextArea textarea, .stTextInput input {
+/* ══════════════════════════════════════════
+   INPUTS
+   ══════════════════════════════════════════ */
+[data-testid="stTextArea"] textarea,
+[data-testid="stTextInput"] input {
+    background: rgba(255,255,255,0.06) !important;
+    border: 1px solid rgba(255,255,255,0.14) !important;
+    border-radius: 10px !important;
+    color: rgba(255,255,255,0.92) !important;
+    font-size: 0.94rem !important;
+    caret-color: #c084fc !important;
+}
+[data-testid="stTextArea"] textarea:focus,
+[data-testid="stTextInput"] input:focus {
+    border-color: rgba(192,132,252,0.6) !important;
+    box-shadow: 0 0 0 2px rgba(124,58,237,0.22) !important;
+    outline: none !important;
+}
+
+/* Selectbox */
+[data-testid="stSelectbox"] > div {
+    background: rgba(255,255,255,0.05) !important;
+}
+[data-testid="stSelectbox"] div[data-baseweb="select"] > div {
     background: rgba(255,255,255,0.05) !important;
     border: 1px solid rgba(255,255,255,0.12) !important;
-    border-radius: 10px !important;
-    color: rgba(255,255,255,0.9) !important;
-    font-size: 0.94rem !important;
-}
-.stTextArea textarea:focus, .stTextInput input:focus {
-    border-color: rgba(192,132,252,0.5) !important;
-    box-shadow: 0 0 0 2px rgba(124,58,237,0.18) !important;
-}
-
-/* ── Selectbox ── */
-.stSelectbox > div > div {
-    background: rgba(255,255,255,0.05) !important;
-    border: 1px solid rgba(255,255,255,0.1) !important;
     border-radius: 9px !important;
 }
 
-/* ── Metrics ── */
-[data-testid="metric-container"] {
-    background: rgba(255,255,255,0.04) !important;
-    border: 1px solid rgba(255,255,255,0.07) !important;
-    border-radius: 11px !important;
-    padding: 0.75rem 1rem !important;
+/* Metrics */
+[data-testid="metric-container"],
+[data-testid="stMetric"] {
+    background: rgba(124,58,237,0.08) !important;
+    border: 1px solid rgba(192,132,252,0.15) !important;
+    border-radius: 12px !important;
+    padding: 0.8rem 1rem !important;
 }
 
-/* ── Sidebar ── */
+/* Slider track */
+[data-testid="stSlider"] > div > div > div {
+    background: linear-gradient(90deg, #7c3aed, #22d3ee) !important;
+}
+
+/* Sidebar */
 [data-testid="stSidebar"] {
-    background: rgba(6,6,15,0.97) !important;
-    border-right: 1px solid rgba(255,255,255,0.06) !important;
+    background: rgba(6,6,18,0.98) !important;
+    border-right: 1px solid rgba(255,255,255,0.07) !important;
 }
 
-/* ── Divider ── */
-hr { border-color: rgba(255,255,255,0.07) !important; margin: 1.5rem 0 !important; }
+/* Expander */
+[data-testid="stExpander"] {
+    background: rgba(255,255,255,0.03) !important;
+    border: 1px solid rgba(255,255,255,0.07) !important;
+    border-radius: 10px !important;
+}
+[data-testid="stExpander"] summary {
+    color: rgba(255,255,255,0.75) !important;
+    font-weight: 500 !important;
+}
 
-/* ── Caption ── */
-.stCaption { color: rgba(255,255,255,0.38) !important; font-size: 0.81rem !important; }
+/* Dataframe */
+[data-testid="stDataFrame"] {
+    border: 1px solid rgba(255,255,255,0.08) !important;
+    border-radius: 10px !important;
+    overflow: hidden !important;
+}
 
-/* ── Code block ── */
-.stCode { border-radius: 10px !important; }
+/* Info / warning / success alerts */
+[data-testid="stAlert"] {
+    border-radius: 10px !important;
+}
 
-/* ── Hide Streamlit chrome ── */
-#MainMenu { visibility: hidden; }
-footer    { visibility: hidden; }
-header    { visibility: hidden; }
+/* Divider */
+hr {
+    border: none !important;
+    border-top: 1px solid rgba(255,255,255,0.07) !important;
+    margin: 1.5rem 0 !important;
+}
+
+/* Caption */
+[data-testid="stCaptionContainer"] p,
+.stCaption {
+    color: rgba(255,255,255,0.38) !important;
+    font-size: 0.81rem !important;
+}
+
+/* Stats counter animation */
+@keyframes countUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.stat-item {
+    animation: countUp 0.6s ease forwards;
+}
+
+/* Glowing separator */
+.glow-line {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #7c3aed, #22d3ee, transparent);
+    margin: 2rem 0;
+    border: none;
+}
+
+/* Pipeline step arrows */
+.pipeline-arrow {
+    color: rgba(192,132,252,0.5);
+    font-size: 1.5rem;
+    text-align: center;
+    line-height: 1;
+    padding-top: 1.5rem;
+}
 
 /* ── Feature input group labels ── */
 .input-group-label {
@@ -838,121 +929,268 @@ def doctor_summary(
 # ─────────────────────────────────────────────
 
 def tab_intro() -> None:
-    # Hero
-    st.markdown(
-        """
+
+    # ── HERO ──────────────────────────────────────────────────────────────────
+    st.markdown("""
 <div class="hero-section">
-    <div class="hero-title">Endo Digital Twin</div>
-    <div class="hero-sub">
-        A clinical AI tool that simulates how lifestyle factors influence endometriosis pain —
-        combining interpretable machine learning with personalised AI insights.
+
+  <!-- Top label -->
+  <div style="margin-bottom:1.2rem;">
+    <span style="
+      display:inline-block;
+      background:rgba(124,58,237,0.18);
+      border:1px solid rgba(192,132,252,0.35);
+      border-radius:30px;
+      padding:0.3rem 1.1rem;
+      font-size:0.76rem;
+      color:#c084fc;
+      font-weight:600;
+      letter-spacing:0.1em;
+      text-transform:uppercase;
+    ">Clinical AI &nbsp;·&nbsp; Endometriosis Research Tool</span>
+  </div>
+
+  <!-- Title -->
+  <div class="hero-title">Endo Digital Twin</div>
+  <div class="hero-sub">
+    Simulate how lifestyle factors shape endometriosis pain — powered by
+    interpretable ML models and personalised Claude AI insights.
+  </div>
+
+  <!-- Stats grid -->
+  <div style="
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:1rem;
+    max-width:780px;
+    margin:2rem auto 2rem;
+  ">
+    <div class="stat-item" style="
+      background:rgba(124,58,237,0.12);
+      border:1px solid rgba(192,132,252,0.25);
+      border-radius:14px;
+      padding:1.25rem 0.75rem;
+      text-align:center;
+      animation-delay:0.0s;
+    ">
+      <div style="font-size:1.85rem;font-weight:800;color:#c084fc;line-height:1;">1 in 10</div>
+      <div style="font-size:0.72rem;color:rgba(255,255,255,0.5);margin-top:0.3rem;text-transform:uppercase;letter-spacing:0.06em;">Women Affected</div>
     </div>
-    <div>
-        <span class="badge">ElasticNet</span>
-        <span class="badge">RandomForest</span>
-        <span class="badge">SHAP Explanations</span>
-        <span class="badge">Claude AI</span>
-        <span class="badge">Digital Twin Simulation</span>
+    <div class="stat-item" style="
+      background:rgba(34,211,238,0.1);
+      border:1px solid rgba(34,211,238,0.22);
+      border-radius:14px;
+      padding:1.25rem 0.75rem;
+      text-align:center;
+      animation-delay:0.1s;
+    ">
+      <div style="font-size:1.85rem;font-weight:800;color:#22d3ee;line-height:1;">8</div>
+      <div style="font-size:0.72rem;color:rgba(255,255,255,0.5);margin-top:0.3rem;text-transform:uppercase;letter-spacing:0.06em;">Lifestyle Features</div>
     </div>
+    <div class="stat-item" style="
+      background:rgba(52,211,153,0.1);
+      border:1px solid rgba(52,211,153,0.22);
+      border-radius:14px;
+      padding:1.25rem 0.75rem;
+      text-align:center;
+      animation-delay:0.2s;
+    ">
+      <div style="font-size:1.85rem;font-weight:800;color:#34d399;line-height:1;">8,000</div>
+      <div style="font-size:0.72rem;color:rgba(255,255,255,0.5);margin-top:0.3rem;text-transform:uppercase;letter-spacing:0.06em;">Training Samples</div>
+    </div>
+    <div class="stat-item" style="
+      background:rgba(251,146,60,0.1);
+      border:1px solid rgba(251,146,60,0.22);
+      border-radius:14px;
+      padding:1.25rem 0.75rem;
+      text-align:center;
+      animation-delay:0.3s;
+    ">
+      <div style="font-size:1.85rem;font-weight:800;color:#fb923c;line-height:1;">2</div>
+      <div style="font-size:0.72rem;color:rgba(255,255,255,0.5);margin-top:0.3rem;text-transform:uppercase;letter-spacing:0.06em;">ML Models</div>
+    </div>
+  </div>
+
+  <!-- Tech badges -->
+  <div>
+    <span class="badge">ElasticNet</span>
+    <span class="badge">RandomForest</span>
+    <span class="badge">SHAP Waterfall</span>
+    <span class="badge">Claude AI</span>
+    <span class="badge">Digital Twin</span>
+    <span class="badge">AWS EC2</span>
+  </div>
+
 </div>
-""",
-        unsafe_allow_html=True,
-    )
+""", unsafe_allow_html=True)
 
-    st.image("women_endo.png", use_container_width=True)
+    # ── GLOWING SEPARATOR ─────────────────────────────────────────────────────
+    st.markdown('<div class="glow-line"></div>', unsafe_allow_html=True)
 
-    st.markdown("<br>", unsafe_allow_html=True)
-
-    col1, col2 = st.columns(2)
-    with col1:
-        st.markdown(
-            """
-<div class="info-card glass-card">
-    <h3 style="color:#c084fc;">🔬 About This Tool</h3>
-    <p style="color:rgba(255,255,255,0.72);">
-        The Endo Digital Twin is an educational application that lets you simulate how changes in sleep,
-        stress, activity, hydration, menstrual cycle phase, and other factors might affect predicted pain levels.
-        Two ML models provide complementary views: <strong style="color:#22d3ee;">ElasticNet</strong> for
-        interpretable linear coefficients and <strong style="color:#22d3ee;">RandomForest</strong> for
-        non-linear pattern recognition.
-    </p>
+    # ── HOW IT WORKS — 3-step pipeline ────────────────────────────────────────
+    st.markdown("""
+<div style="text-align:center;margin-bottom:1.25rem;">
+  <span style="font-size:0.75rem;font-weight:700;color:rgba(255,255,255,0.35);
+    text-transform:uppercase;letter-spacing:0.12em;">How It Works</span>
 </div>
-""",
-            unsafe_allow_html=True,
-        )
-    with col2:
-        st.markdown(
-            """
-<div class="info-card glass-card">
-    <h3 style="color:#22d3ee;">🤖 AI-Powered Insights</h3>
-    <p style="color:rgba(255,255,255,0.72);">
-        After running a simulation, describe your symptoms in plain English and receive personalised,
-        evidence-based insights from <strong style="color:#c084fc;">Claude AI</strong>.
-        The AI reads your exact simulation inputs and predicted pain score to give you contextually
-        relevant lifestyle guidance — not generic advice.
-    </p>
-</div>
-""",
-            unsafe_allow_html=True,
-        )
+""", unsafe_allow_html=True)
 
-    col1, col2, col3 = st.columns(3)
-    cards = [
-        ("🧪", "Simulator", "#7c3aed", "Adjust 8 lifestyle variables and instantly see their predicted effect on pain with SHAP feature attribution."),
-        ("💬", "AI Insights", "#0891b2", "Describe your symptoms in natural language — Claude AI interprets your inputs and provides personalised recommendations."),
-        ("📊", "My Tracker", "#059669", "Log daily check-ins, visualise trends over time, and discover patterns in your personal symptom history."),
-    ]
-    for col, (icon, title, color, desc) in zip([col1, col2, col3], cards):
-        with col:
-            st.markdown(
-                f"""
-<div class="glass-card" style="border-color:rgba(255,255,255,0.1); text-align:center; padding:1.75rem 1.25rem;">
-    <div style="font-size:2rem; margin-bottom:0.5rem;">{icon}</div>
-    <div style="font-size:1rem; font-weight:700; color:{color}; margin-bottom:0.5rem;">{title}</div>
-    <div style="font-size:0.88rem; color:rgba(255,255,255,0.55); line-height:1.6;">{desc}</div>
-</div>
-""",
-                unsafe_allow_html=True,
-            )
+    s1, arr1, s2, arr2, s3 = st.columns([4, 1, 4, 1, 4])
 
-    st.markdown("<br>", unsafe_allow_html=True)
-    st.markdown(
-        """
-<div class="disclaimer-box">
-    ⚠️ <strong>Important Disclaimer:</strong> This application is for <strong>educational purposes only</strong>
-    and does not constitute medical advice. Models are trained on synthetic data.
-    Always consult a qualified healthcare professional for medical decisions.
-</div>
-""",
-        unsafe_allow_html=True,
-    )
-
-    # ML details
-    with st.expander("🔬 ML Pipeline & Model Details", expanded=False):
-        col1, col2 = st.columns(2)
-        with col1:
-            st.markdown("**ElasticNet (Interpretable Linear Model)**")
-            st.markdown("""
-- StandardScaler → ElasticNet(α=0.12, L1_ratio=0.2)
-- Interpretable coefficients stored per feature
-- Exact SHAP values derivable from coefficients
-- Good for understanding directional effects
-""")
-        with col2:
-            st.markdown("**RandomForest (Non-linear Ensemble)**")
-            st.markdown("""
-- 300 trees, max_depth=10, min_samples_leaf=2
-- Captures complex feature interactions
-- Feature importances used for impact estimation
-- Better for absolute pain level accuracy
-""")
+    with s1:
         st.markdown("""
-**Training Data:** 8,000 synthetic samples generated with a transparent pain formula incorporating
-clinically-informed relationships between lifestyle factors and endometriosis pain.
-**Features:** sleep, stress, activity, period phase, GI symptoms, NSAID use, mood, hydration.
-""")
+<div class="glass-card" style="text-align:center;padding:1.6rem 1rem;border-color:rgba(124,58,237,0.3);">
+  <div style="font-size:2.2rem;margin-bottom:0.6rem;">🎛️</div>
+  <div style="font-weight:700;color:#c084fc;font-size:1rem;margin-bottom:0.5rem;">Step 1 — Input</div>
+  <div style="font-size:0.85rem;color:rgba(255,255,255,0.55);line-height:1.6;">
+    Adjust 8 lifestyle sliders: sleep, stress, activity, hydration, mood,
+    cycle phase, GI symptoms, NSAID use.
+  </div>
+</div>""", unsafe_allow_html=True)
 
-    # References
+    with arr1:
+        st.markdown('<div class="pipeline-arrow">→</div>', unsafe_allow_html=True)
+
+    with s2:
+        st.markdown("""
+<div class="glass-card" style="text-align:center;padding:1.6rem 1rem;border-color:rgba(34,211,238,0.3);">
+  <div style="font-size:2.2rem;margin-bottom:0.6rem;">🧠</div>
+  <div style="font-weight:700;color:#22d3ee;font-size:1rem;margin-bottom:0.5rem;">Step 2 — Predict</div>
+  <div style="font-size:0.85rem;color:rgba(255,255,255,0.55);line-height:1.6;">
+    ElasticNet or RandomForest model predicts pain (0–10) and SHAP attribution
+    shows each feature's exact contribution.
+  </div>
+</div>""", unsafe_allow_html=True)
+
+    with arr2:
+        st.markdown('<div class="pipeline-arrow">→</div>', unsafe_allow_html=True)
+
+    with s3:
+        st.markdown("""
+<div class="glass-card" style="text-align:center;padding:1.6rem 1rem;border-color:rgba(52,211,153,0.3);">
+  <div style="font-size:2.2rem;margin-bottom:0.6rem;">✨</div>
+  <div style="font-weight:700;color:#34d399;font-size:1rem;margin-bottom:0.5rem;">Step 3 — Insight</div>
+  <div style="font-size:0.85rem;color:rgba(255,255,255,0.55);line-height:1.6;">
+    Claude AI reads your inputs and pain score, then delivers personalised,
+    evidence-based lifestyle recommendations.
+  </div>
+</div>""", unsafe_allow_html=True)
+
+    st.markdown('<div class="glow-line"></div>', unsafe_allow_html=True)
+
+    # ── FEATURE CARDS ─────────────────────────────────────────────────────────
+    st.markdown("""
+<div style="text-align:center;margin-bottom:1.25rem;">
+  <span style="font-size:0.75rem;font-weight:700;color:rgba(255,255,255,0.35);
+    text-transform:uppercase;letter-spacing:0.12em;">App Features</span>
+</div>
+""", unsafe_allow_html=True)
+
+    f1, f2, f3, f4 = st.columns(4)
+    feat_cards = [
+        ("🧪", "#7c3aed", "rgba(124,58,237,0.12)", "rgba(124,58,237,0.28)",
+         "Simulator",
+         "Run what-if scenarios. Instantly see how lifestyle changes shift predicted pain with a SHAP waterfall breakdown."),
+        ("💬", "#22d3ee", "rgba(34,211,238,0.08)", "rgba(34,211,238,0.22)",
+         "AI Insights",
+         "Describe symptoms in plain English. Claude AI combines your description with simulation data for personalised advice."),
+        ("📊", "#34d399", "rgba(52,211,153,0.08)", "rgba(52,211,153,0.22)",
+         "My Tracker",
+         "Log daily check-ins. Visualise pain trends, sleep patterns, and stress correlations over time."),
+        ("🗺️", "#fb923c", "rgba(251,146,60,0.08)", "rgba(251,146,60,0.22)",
+         "Pain Landscape",
+         "2D heatmap shows how any pair of features interact across their full range — find your personal leverage points."),
+    ]
+    for col, (icon, color, bg, border, title, desc) in zip([f1, f2, f3, f4], feat_cards):
+        with col:
+            st.markdown(f"""
+<div class="glass-card" style="
+  background:{bg};
+  border-color:{border};
+  text-align:center;
+  padding:1.5rem 1rem;
+  height:100%;
+">
+  <div style="font-size:2rem;margin-bottom:0.6rem;">{icon}</div>
+  <div style="font-weight:700;color:{color};font-size:0.97rem;margin-bottom:0.5rem;">{title}</div>
+  <div style="font-size:0.82rem;color:rgba(255,255,255,0.52);line-height:1.65;">{desc}</div>
+</div>""", unsafe_allow_html=True)
+
+    st.markdown('<div class="glow-line"></div>', unsafe_allow_html=True)
+
+    # ── ML MODEL COMPARISON TABLE ─────────────────────────────────────────────
+    st.markdown("""
+<div style="text-align:center;margin-bottom:1.25rem;">
+  <span style="font-size:0.75rem;font-weight:700;color:rgba(255,255,255,0.35);
+    text-transform:uppercase;letter-spacing:0.12em;">ML Models</span>
+</div>
+""", unsafe_allow_html=True)
+
+    m1, m2 = st.columns(2)
+    with m1:
+        st.markdown("""
+<div class="glass-card" style="border-color:rgba(192,132,252,0.28);padding:1.5rem;">
+  <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1rem;">
+    <div style="
+      background:rgba(124,58,237,0.2);border:1px solid rgba(192,132,252,0.4);
+      border-radius:8px;padding:0.3rem 0.7rem;font-size:0.75rem;
+      color:#c084fc;font-weight:700;letter-spacing:0.05em;
+    ">ElasticNet</div>
+    <div style="font-size:0.78rem;color:rgba(255,255,255,0.4);">Interpretable Linear Model</div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:0.5rem;">
+    <div style="display:flex;align-items:center;gap:0.5rem;font-size:0.85rem;color:rgba(255,255,255,0.7);">
+      <span style="color:#34d399;font-size:0.7rem;">●</span> StandardScaler + L1/L2 regularisation
+    </div>
+    <div style="display:flex;align-items:center;gap:0.5rem;font-size:0.85rem;color:rgba(255,255,255,0.7);">
+      <span style="color:#34d399;font-size:0.7rem;">●</span> Exact per-feature coefficients → true SHAP
+    </div>
+    <div style="display:flex;align-items:center;gap:0.5rem;font-size:0.85rem;color:rgba(255,255,255,0.7);">
+      <span style="color:#34d399;font-size:0.7rem;">●</span> Best for understanding directional effects
+    </div>
+    <div style="display:flex;align-items:center;gap:0.5rem;font-size:0.85rem;color:rgba(255,255,255,0.7);">
+      <span style="color:#34d399;font-size:0.7rem;">●</span> α = 0.12, L1 ratio = 0.2
+    </div>
+  </div>
+</div>""", unsafe_allow_html=True)
+
+    with m2:
+        st.markdown("""
+<div class="glass-card" style="border-color:rgba(34,211,238,0.25);padding:1.5rem;">
+  <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1rem;">
+    <div style="
+      background:rgba(34,211,238,0.12);border:1px solid rgba(34,211,238,0.35);
+      border-radius:8px;padding:0.3rem 0.7rem;font-size:0.75rem;
+      color:#22d3ee;font-weight:700;letter-spacing:0.05em;
+    ">RandomForest</div>
+    <div style="font-size:0.78rem;color:rgba(255,255,255,0.4);">Non-linear Ensemble</div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:0.5rem;">
+    <div style="display:flex;align-items:center;gap:0.5rem;font-size:0.85rem;color:rgba(255,255,255,0.7);">
+      <span style="color:#22d3ee;font-size:0.7rem;">●</span> 300 trees, max_depth=10
+    </div>
+    <div style="display:flex;align-items:center;gap:0.5rem;font-size:0.85rem;color:rgba(255,255,255,0.7);">
+      <span style="color:#22d3ee;font-size:0.7rem;">●</span> Captures non-linear feature interactions
+    </div>
+    <div style="display:flex;align-items:center;gap:0.5rem;font-size:0.85rem;color:rgba(255,255,255,0.7);">
+      <span style="color:#22d3ee;font-size:0.7rem;">●</span> Feature importances → SHAP estimates
+    </div>
+    <div style="display:flex;align-items:center;gap:0.5rem;font-size:0.85rem;color:rgba(255,255,255,0.7);">
+      <span style="color:#22d3ee;font-size:0.7rem;">●</span> Better absolute pain level accuracy
+    </div>
+  </div>
+</div>""", unsafe_allow_html=True)
+
+    # ── DISCLAIMER ────────────────────────────────────────────────────────────
+    st.markdown("""
+<div class="disclaimer-box" style="margin-top:1rem;">
+  ⚠️ <strong>Educational purposes only.</strong> This tool is not medical advice.
+  Models are trained on synthetic data. Always consult a qualified healthcare
+  professional for decisions about your health.
+</div>
+""", unsafe_allow_html=True)
+
+    # ── References ────────────────────────────────────────────────────────────
     with st.expander("📚 Scientific References", expanded=False):
         st.markdown("""
 - Bulun S.E. et al. (2019). *Endometriosis.* Endocrine Reviews, 40(4), 1048–1079.
